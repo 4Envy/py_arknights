@@ -1,9 +1,13 @@
 [tool.poetry]
 name = "arknights"
-version = "0.1.1"
+version = "0.1.2"
 description = "arknights CN request functions"
-authors = ["djkcyl"]
 license = "MIT"
+authors = [
+    "djkcyl <cyl@cyllive.cn>"
+]
+repository = "https://github.com/djkcyl/py_arknights"
+
 
 [tool.poetry.dependencies]
 python = "^3.7"
