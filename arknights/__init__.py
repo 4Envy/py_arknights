@@ -103,7 +103,13 @@ class Arknights:
                 self.network_version,
             ) = session
             self.seqnum += 1
-            print("load cache success")
+            session_verify = self.postGs("/account/syncData", {"platform": 1})
+            if session_verify.get("statusCode", 0) == 401:
+                print(session_verify["message"])
+                self.session_file.unlink()
+                self.login()
+            print(f"{session_verify['user']['status']['nickName']} session loaded")
+            print("login form session file success")
             return (
                 self.username,
                 self.uid,
