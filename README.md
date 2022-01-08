@@ -1,30 +1,37 @@
 # Py Arknights
+
 arknights CN request functions
 
 ### Install
+
 ```shell
 pip install arknights
 ```
 
 ### Usage
+
 ```python
 from pathlib import Path
-from arknights import Arknights
+from arknights import Arknights, AkCall
 
 ark = Arknights(
-    "18888888888",                        # phone number
-    "xxxxxxx",                            # password
-    "",                                   # access_token (if you have
-    "ffffffffffffffffffffffffffffffff",   # device_id
-    "ffffffffffffffff",                   # device_id2
-    Path("accs"),                         # session_dir
-    "http://127.0.0.1:1080"               # http proxy
+    username="18888888888",                         # phone number
+    password="xxxxxxx",                             # password
+    access_token="",                                # access_token (if you have
+    device_id="ffffffffffffffffffffffffffffffff",   # device_id
+    device_id2="ffffffffffffffff",                  # device_id2
+    session_dir=Path("accs"),                       # session_dir
+    proxy="http://127.0.0.1:1080"                   # http proxy
 )
 
-print(ark.login())
+AkCall(ark).Account.syncData()
 
-id_range = [str(x) for x in range(1, 10)]
-players_list = acc1.postGs("/social/searchPlayer", {"idList": id_range})
+search_player = AkCall(ark).Social.getSortListInfo("两面包夹芝士", "")
+player_list = AkCall(ark).Social.searchPlayer(
+    [x["uid"] for x in search_player["result"]]
+)
 
-print(players_list)
+for player in player_list["result"]:
+    nickName = player["nickName"]
+    print(nickName)
 ```

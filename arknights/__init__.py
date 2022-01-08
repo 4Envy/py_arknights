@@ -9,6 +9,10 @@ from hashlib import sha1
 from typing import Optional, Union
 from pydantic.networks import AnyHttpUrl
 
+from .cgi import AkCall  # noqa
+from .exception import PostException
+
+
 headers = {  # all requests public headers, don't change!
     "Content-Type": "application/json",
     "X-Unity-Version": "2017.4.39f1",
@@ -70,10 +74,14 @@ class Arknights:
         req = self.http.post(auth_server + cgi, json=data, headers=headers)
         return req.json()
 
-    def postGs(self, cgi, data):
+    def postGs(self, cgi, data, verify=True):
         """Post data to Game Server"""
         req = self.http.post(game_server + cgi, json=data, headers=self.getGsHeaders())
         result = req.json()
+        if verify:
+            status_code = result.get("statusCode", 0)
+            if status_code != 0:
+                raise PostException(result)
         self.dumpSession()
         return result
 
@@ -103,7 +111,7 @@ class Arknights:
                 self.network_version,
             ) = session
             self.seqnum += 1
-            session_verify = self.postGs("/account/syncData", {"platform": 1})
+            session_verify = self.postGs("/account/syncData", {"platform": 1}, False)
             if session_verify.get("statusCode", 0) == 401:
                 print(session_verify["message"])
                 self.session_file.unlink()
@@ -157,7 +165,7 @@ class Arknights:
         self.uid = res["uid"]
         self.token = res["token"]
 
-        self.postGs(
+        self.postAs(
             "/u8/pay/getAllProductList",
             {"appId": "1", "channelId": "1", "worldId": 1, "platform": 1},
         )
@@ -173,11 +181,11 @@ class Arknights:
             "deviceId2": self.device_id2,
             "deviceId3": "",
         }
-        res = self.postGs("/account/login", data)
+        res = self.postGs("/account/login", data, False)
         print("game login...")
         self.secret: str = res["secret"]
 
-        res = self.postGs("/account/syncData", {"platform": 1})
+        res = self.postGs("/account/syncData", {"platform": 1}, False)
         if res["result"] != 0:
             print("syncData failed")
             return False
