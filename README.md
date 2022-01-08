@@ -24,6 +24,9 @@ ark = Arknights(
     proxy="http://127.0.0.1:1080"                   # http proxy
 )
 
+ark.login()
+
+
 AkCall(ark).Account.syncData()
 
 search_player = AkCall(ark).Social.getSortListInfo("两面包夹芝士", "")
