@@ -1,6 +1,6 @@
 # Py Arknights
 
-arknights CN request functions
+arknights CN request library
 
 ### Install
 
