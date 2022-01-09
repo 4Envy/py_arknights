@@ -36,7 +36,7 @@ class Arknights:
         access_token: str = "",
         device_id: str = "",
         device_id2: str = "",
-        session_dir: Union[str, Path] = Path("session"),
+        session_dir: Union[str, Path] = Path().cwd().joinpath("session"),
         proxy: Optional[AnyHttpUrl] = None,
     ):
         """init account instance"""
@@ -246,6 +246,8 @@ class Arknights:
 
     def dumpSession(self):
         """save session"""
+        if not self.session_dir.exists():
+            self.session_dir.mkdir(parents=True, exist_ok=True)
         with self.session_file.open("wb") as f:
             pickle.dump(
                 (

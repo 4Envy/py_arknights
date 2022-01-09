@@ -1,2 +1,5 @@
 poetry.lock
 dist/
+arknights/__pycache__/
+session/
+test.py
