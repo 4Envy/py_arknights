@@ -43,3 +43,12 @@ class AkCall:
                     "param": {"nickName": nickname, "nickNumber": nicknumber},
                 },
             )
+
+        @classmethod
+        def getFriendList(self, idList: list[str]) -> dict:
+            """
+            get friend list
+
+            获取好友列表
+            """
+            return self.ak.postGs("/social/getFriendList", {"idList": idList})
