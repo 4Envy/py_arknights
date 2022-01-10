@@ -29,7 +29,8 @@ ark = Arknights(
 ark.login()
 
 
-AkCall.Account(ark).syncData()
+user_data = AkCall.Account(ark).syncData()
+print(f'Is Level {user_data["user"]["status"]["level"]} now')
 
 search_player = AkCall.Social(ark).getSortListInfo("两面包夹芝士", "")
 player_list = AkCall.Social(ark).searchPlayer(
