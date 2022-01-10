@@ -1,6 +1,6 @@
 # Py Arknights
 
-arknights CN request functions
+arknights CN request library
 
 ### Install
 
@@ -28,10 +28,10 @@ ark = Arknights(
 ark.login()
 
 
-AkCall(ark).Account.syncData()
+AkCall.Account(ark).syncData()
 
-search_player = AkCall(ark).Social.getSortListInfo("两面包夹芝士", "")
-player_list = AkCall(ark).Social.searchPlayer(
+search_player = AkCall.Social(ark).getSortListInfo("两面包夹芝士", "")
+player_list = AkCall.Social(ark).searchPlayer(
     [x["uid"] for x in search_player["result"]]
 )
 
