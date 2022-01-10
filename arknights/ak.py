@@ -38,6 +38,7 @@ class Arknights:
         device_id: str = "",
         device_id2: str = "",
         relogin: bool = False,
+        use_cache: bool = True,
         session_dir: Union[str, Path] = Path().cwd().joinpath("session"),
         proxy: Optional[AnyHttpUrl] = None,
     ):
@@ -51,6 +52,7 @@ class Arknights:
         self.device_id2 = device_id2 or str(uuid.uuid4()).replace("-", "")[:16]
         self.session_dir = Path(session_dir)
         self.relogin = relogin
+        self.use_cache = use_cache
         self.proxy = proxy
         self.http = httpx.Client(
             headers=headers,
@@ -86,7 +88,6 @@ class Arknights:
 
     def login(
         self,
-        no_cache: bool = False,
     ) -> Union[bool, tuple[str, str, str, str, str]]:
         """account login"""
 
@@ -101,7 +102,7 @@ class Arknights:
         ).json()
         self.network_version = json.loads(res["content"])["configVer"]
         self.session_file = self.session_dir.joinpath(f"{self.username}.pickle")
-        if self.session_file.exists() and not no_cache:
+        if self.session_file.exists() and self.use_cache:
             with self.session_file.open("rb") as f:
                 session = pickle.load(f)
             (
@@ -272,27 +273,28 @@ class Arknights:
 
     def dumpSession(self):
         """save session"""
-        if not self.session_dir.exists():
-            self.session_dir.mkdir(parents=True, exist_ok=True)
-        with self.session_file.open("wb") as f:
-            pickle.dump(
-                (
-                    self.device_id,
-                    self.device_id2,
-                    self.username,
-                    self.password,
-                    self.access_token,
-                    self.uid,
-                    self.nickname,
-                    self.proxy,
-                    self.secret,
-                    self.seqnum,
-                    self.res_version,
-                    self.client_version,
-                    self.network_version,
-                ),
-                f,
-            )
+        if self.use_cache:
+            if not self.session_dir.exists():
+                self.session_dir.mkdir(parents=True, exist_ok=True)
+            with self.session_file.open("wb") as f:
+                pickle.dump(
+                    (
+                        self.device_id,
+                        self.device_id2,
+                        self.username,
+                        self.password,
+                        self.access_token,
+                        self.uid,
+                        self.nickname,
+                        self.proxy,
+                        self.secret,
+                        self.seqnum,
+                        self.res_version,
+                        self.client_version,
+                        self.network_version,
+                    ),
+                    f,
+                )
 
     def close(self):
         """close session"""
