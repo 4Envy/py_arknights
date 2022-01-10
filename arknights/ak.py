@@ -86,6 +86,7 @@ class Arknights:
 
     def login(
         self,
+        no_cache: bool = False,
     ) -> Union[bool, tuple[str, str, str, str, str]]:
         """account login"""
 
@@ -100,7 +101,7 @@ class Arknights:
         ).json()
         self.network_version = json.loads(res["content"])["configVer"]
         self.session_file = self.session_dir.joinpath(f"{self.username}.pickle")
-        if self.session_file.exists():
+        if self.session_file.exists() and not no_cache:
             with self.session_file.open("rb") as f:
                 session = pickle.load(f)
             (
@@ -125,6 +126,13 @@ class Arknights:
                 print("session expired, try to login again")
                 self.session_file.unlink()
                 self.login()
+                return (
+                    self.username,
+                    self.uid,
+                    self.nickname,
+                    self.access_token,
+                    self.secret,
+                )
             elif session_verify.get("statusCode", 0) != 0:
                 print(session_verify)
                 raise PostException(session_verify)
@@ -195,7 +203,11 @@ class Arknights:
         }
         res = self.postGs("/account/login", data, False)
         print("game login...")
-        self.secret: str = res["secret"]
+        try:
+            self.secret: str = res["secret"]
+        except KeyError:
+            print(res)
+            raise PostException(res)
 
         res = self.postGs("/account/syncData", {"platform": 1}, False)
         if res["result"] != 0:
