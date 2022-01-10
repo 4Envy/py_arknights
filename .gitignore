@@ -3,3 +3,5 @@ dist/
 arknights/__pycache__/
 session/
 test.py
+get_friend.py
+config.json

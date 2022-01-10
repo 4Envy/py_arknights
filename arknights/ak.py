@@ -1,3 +1,4 @@
+import time
 import json
 import hmac
 import uuid
@@ -36,6 +37,7 @@ class Arknights:
         access_token: str = "",
         device_id: str = "",
         device_id2: str = "",
+        relogin: bool = False,
         session_dir: Union[str, Path] = Path().cwd().joinpath("session"),
         proxy: Optional[AnyHttpUrl] = None,
     ):
@@ -45,9 +47,10 @@ class Arknights:
         self.username = username
         self.password = password
         self.access_token = access_token
-        self.session_dir = Path(session_dir)
         self.device_id = device_id or str(uuid.uuid4()).replace("-", "")
         self.device_id2 = device_id2 or str(uuid.uuid4()).replace("-", "")[:16]
+        self.session_dir = Path(session_dir)
+        self.relogin = relogin
         self.proxy = proxy
         self.http = httpx.Client(
             headers=headers,
@@ -58,15 +61,6 @@ class Arknights:
         self.nickname = ""
         self.secret = ""
         self.seqnum = 1
-        res = self.http.get(
-            "https://ak-conf.hypergryph.com/config/prod/official/Android/version"
-        ).json()
-        self.res_version = res["resVersion"]
-        self.client_version = res["clientVersion"]
-        res = self.http.get(
-            "https://ak-conf.hypergryph.com/config/prod/official/network_config"
-        ).json()
-        self.network_version = json.loads(res["content"])["configVer"]
 
     def postAs(self, cgi, data):
         """Post data to Auth Server"""
@@ -79,7 +73,13 @@ class Arknights:
         result = req.json()
         if verify:
             status_code = result.get("statusCode", 0)
-            if status_code != 0:
+            if status_code == 401 and self.relogin:
+                print("postGs 401, relogin... sleep 15s")
+                time.sleep(15)
+                self.relogin = False
+                self.login()
+                self.postGs(cgi, data)
+            elif status_code != 0:
                 raise PostException(result)
         self.dumpSession()
         return result
@@ -90,6 +90,15 @@ class Arknights:
         """account login"""
 
         print(f"{self.username} login...")
+        res = self.http.get(
+            "https://ak-conf.hypergryph.com/config/prod/official/Android/version"
+        ).json()
+        self.res_version = res["resVersion"]
+        self.client_version = res["clientVersion"]
+        res = self.http.get(
+            "https://ak-conf.hypergryph.com/config/prod/official/network_config"
+        ).json()
+        self.network_version = json.loads(res["content"])["configVer"]
         self.session_file = self.session_dir.joinpath(f"{self.username}.pickle")
         if self.session_file.exists():
             with self.session_file.open("rb") as f:
@@ -112,9 +121,13 @@ class Arknights:
             self.seqnum += 1
             session_verify = self.postGs("/account/syncData", {"platform": 1}, False)
             if session_verify.get("statusCode", 0) == 401:
-                print(session_verify["message"])
+                print(session_verify)
+                print("session expired, try to login again")
                 self.session_file.unlink()
                 self.login()
+            elif session_verify.get("statusCode", 0) != 0:
+                print(session_verify)
+                raise PostException(session_verify)
             print(f"{session_verify['user']['status']['nickName']} session loaded")
             print("login form session file success")
             return (
@@ -195,6 +208,7 @@ class Arknights:
             data["sign"] = u8auth_genSign(data)
             self.postAs("/online/v1/loginout", data)
             self.dumpSession()
+            print(f"{self.nickname} login success")
             return (
                 self.username,
                 self.uid,

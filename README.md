@@ -20,6 +20,7 @@ ark = Arknights(
     access_token="",                                # access_token (if you have
     device_id="ffffffffffffffffffffffffffffffff",   # device_id
     device_id2="ffffffffffffffff",                  # device_id2
+    relogin=True,                                   # auto relogin
     session_dir=Path("accs"),                       # session_dir
     proxy="http://127.0.0.1:1080"                   # http proxy
 )

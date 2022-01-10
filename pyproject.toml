@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "arknights"
-version = "0.1.7"
+version = "0.1.9"
 description = "arknights CN request functions"
 license = "MIT"
 authors = [
